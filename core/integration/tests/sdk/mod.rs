@@ -29,3 +29,4 @@ mod producer;
 #[cfg(feature = "vsr")]
 mod protocol_version;
 mod raw;
+mod send_confirmation;
