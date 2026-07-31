@@ -16,3 +16,4 @@
 // under the License.
 
 mod client_table_restart;
+mod multi_shard_partition_convergence;
