@@ -37,7 +37,7 @@ __all__ = [
     "PollingStrategy",
     "ReceiveMessage",
     "SendMessage",
-    "SendMessagesConfirmationResponse",
+    "SendMessagesConfirmation",
     "SendMessagesResponse",
     "StreamDetails",
     "Topic",
@@ -692,7 +692,9 @@ class IggyClient:
         r"""
         Sends a list of messages to the specified topic.
         Returns a SendMessagesResponse carrying the per-partition commit
-        confirmations, or a PyRuntimeError on failure.
+        confirmations, or a PyRuntimeError on failure. The confirmation list is
+        empty when the server reports no offsets, and the legacy server never
+        reports any.
         """
     def poll_messages(
         self,
@@ -909,7 +911,7 @@ class SendMessage:
         """
 
 @typing.final
-class SendMessagesConfirmationResponse:
+class SendMessagesConfirmation:
     r"""
     A Python class representing the commit confirmation for one partition
     written by a send.
@@ -933,6 +935,17 @@ class SendMessagesConfirmationResponse:
     def base_offset(self) -> builtins.int:
         r"""
         Gets the offset assigned to the first message of the batch in this partition.
+
+        The offset locates the batch, it does not identify it. Delivery is
+        at-least-once, so an earlier retry may already have committed these
+        messages at a lower offset.
+
+        A batch is confirmed once it is committed in memory, not once it is
+        fsynced. A crash-restart can stamp a later batch with an offset a client
+        has already recorded.
+
+        The legacy server confirms nothing, so its confirmation list is empty
+        and this value is never reached.
         """
 
 @typing.final
@@ -941,12 +954,19 @@ class SendMessagesResponse:
     A Python class representing the outcome of a successful send.
     """
     @property
-    def confirmations(self) -> builtins.list[SendMessagesConfirmationResponse]:
+    def confirmations(self) -> builtins.list[SendMessagesConfirmation]:
         r"""
         Gets the commit confirmations, one per partition the batch was written to.
-        A server that commits without reporting offsets yields either an empty
-        list or a single all-zero entry, so neither the length nor a zero
-        `base_offset` can be read as a real offset.
+
+        The list is empty when the server reports no offsets, and the legacy
+        server never reports any, so branch on it being empty rather than
+        indexing into it.
+
+        A reported `base_offset` never implies uniqueness, because delivery is
+        at-least-once and an earlier retry may already have committed the same
+        messages at a lower offset. A batch is confirmed once it is committed in
+        memory, not once it is fsynced. A crash-restart can stamp a later batch
+        with an offset a client has already recorded.
         """
 
 @typing.final

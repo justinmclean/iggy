@@ -31,7 +31,7 @@ use consumer::{
 };
 use pyo3::prelude::*;
 use receive_message::{PollingStrategy, ReceiveMessage};
-use send_message::{SendMessage, SendMessagesConfirmationResponse, SendMessagesResponse};
+use send_message::{SendMessage, SendMessagesConfirmation, SendMessagesResponse};
 use stream::StreamDetails;
 use topic::{Topic, TopicDetails};
 use user::{UserInfo, UserInfoDetails, UserStatus};
@@ -41,7 +41,7 @@ use user::{UserInfo, UserInfoDetails, UserStatus};
 fn apache_iggy(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<SendMessage>()?;
     m.add_class::<SendMessagesResponse>()?;
-    m.add_class::<SendMessagesConfirmationResponse>()?;
+    m.add_class::<SendMessagesConfirmation>()?;
     m.add_class::<ReceiveMessage>()?;
     m.add_class::<IggyClient>()?;
     m.add_class::<StreamDetails>()?;
